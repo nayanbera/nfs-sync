@@ -66,7 +66,7 @@ def run_job(app, job_id):
             _running[job_id] = {"run_id": run.id, "log_path": log_path}
 
         # Build rsync command
-        cmd = ["rsync", "-a", "--verbose", "--stats"]
+        cmd = ["rsync", "-a", "--omit-dir-times", "--verbose", "--stats"]
         if job.use_checksum:
             cmd.append("--checksum")
         if job.bwlimit:
