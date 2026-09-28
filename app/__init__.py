@@ -30,6 +30,7 @@ def create_app():
         db.create_all()
         _migrate_schema()
         _seed_defaults()
+        _reset_stale_runs()
         from .sync import load_all_jobs
         load_all_jobs(app)
 
@@ -44,6 +45,25 @@ def create_app():
     app.register_blueprint(settings_bp)
 
     return app
+
+
+def _reset_stale_runs():
+    """On startup, mark any jobs/runs stuck in 'running' state as failed.
+
+    These are left over from a previous crash or unclean shutdown — they
+    cannot actually be running since the app process just started.
+    """
+    from datetime import datetime
+    from .models import SyncJob, SyncRun
+    stale_runs = SyncRun.query.filter_by(status="running").all()
+    for run in stale_runs:
+        run.status = "error"
+        run.finished_at = run.finished_at or datetime.utcnow()
+        run.log_text = (run.log_text or "") + "\n[Marked failed: app restarted while job was running]"
+    stale_jobs = SyncJob.query.filter_by(last_status="running").all()
+    for job in stale_jobs:
+        job.last_status = "error"
+    db.session.commit()
 
 
 def _migrate_schema():
