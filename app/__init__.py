@@ -28,6 +28,7 @@ def create_app():
     with app.app_context():
         from . import models          # noqa: F401  register models
         db.create_all()
+        _migrate_schema()
         _seed_defaults()
         from .sync import load_all_jobs
         load_all_jobs(app)
@@ -43,6 +44,43 @@ def create_app():
     app.register_blueprint(settings_bp)
 
     return app
+
+
+def _migrate_schema():
+    """Add columns present in models but missing from the live SQLite database.
+
+    Safe to run on every startup — skips columns that already exist.
+    Handles the common case where a pip upgrade adds new model fields.
+    """
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(db.engine)
+    for table in db.metadata.tables.values():
+        if not inspector.has_table(table.name):
+            continue  # db.create_all() already handles brand-new tables
+        existing = {col["name"] for col in inspector.get_columns(table.name)}
+        for col in table.columns:
+            if col.name in existing:
+                continue
+            sql_default = _col_default_sql(col)
+            type_str = str(col.type)
+            db.session.execute(
+                text(f"ALTER TABLE {table.name} ADD COLUMN {col.name} {type_str}{sql_default}")
+            )
+    db.session.commit()
+
+
+def _col_default_sql(col):
+    """Return a SQL DEFAULT clause for use in ALTER TABLE ADD COLUMN."""
+    if col.default is not None and not callable(col.default.arg):
+        val = col.default.arg
+        if isinstance(val, bool):
+            return f" DEFAULT {1 if val else 0}"
+        if isinstance(val, (int, float)):
+            return f" DEFAULT {val}"
+        if isinstance(val, str):
+            return f" DEFAULT '{val}'"
+    return " DEFAULT NULL"
 
 
 def _seed_defaults():

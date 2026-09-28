@@ -4,26 +4,35 @@ After=network.target
 
 [Service]
 Type=simple
-# Run as the user who owns the NFS mounts (must have read access to src paths
+
+# Run as the user who owns the NFS mounts (needs read access to src paths
 # and write access to dst paths).
 User=%i
 
-# The nfs-sync executable installed by pip.  If you used a venv, point here:
-#   ExecStart=/opt/nfs-sync-venv/bin/nfs-sync
+# The nfs-sync executable installed by pip.
+# For a venv install use: ExecStart=/opt/nfs-sync-venv/bin/nfs-sync
 ExecStart=/usr/local/bin/nfs-sync
 
 # Bind to localhost only; put nginx/caddy in front for HTTPS if needed.
 Environment=NFS_SYNC_HOST=127.0.0.1
 Environment=NFS_SYNC_PORT=5050
 
-# Override the database location if you want it somewhere other than
-# ~/.nfs-sync/sync.db (the default).
+# ── Persistent data directory ─────────────────────────────────────────────────
+# All settings and the database live here.  This directory survives pip
+# upgrades because it is outside the package installation tree.
+#
+# Default: /home/<User>/.nfs-sync/
+#   sync.db     — SQLite database (jobs, runs, settings)
+#   secret_key  — auto-generated on first start; keeps login sessions valid
+#
+# To change the location, uncomment and edit the line below:
 #Environment=NFS_SYNC_DATA_DIR=/var/lib/nfs-sync
+# ─────────────────────────────────────────────────────────────────────────────
 
 Restart=on-failure
 RestartSec=5s
 
-# Let gunicorn workers finish in-flight rsync jobs before killing.
+# Give in-flight rsync jobs time to finish before systemd kills the process.
 TimeoutStopSec=120
 
 [Install]
