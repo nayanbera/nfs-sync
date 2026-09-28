@@ -100,7 +100,19 @@
                    placeholder="0 = unlimited">
             <div class="form-text">0 = unlimited</div>
           </div>
-          <div class="col-md-4 d-flex align-items-end pb-2">
+          <div class="col-md-4 d-flex flex-column justify-content-end gap-2 pb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="use_checksum"
+                     id="use_checksum" value="1"
+                     {% if job and job.use_checksum %}checked{% endif %}>
+              <label class="form-check-label" for="use_checksum">
+                Use checksum (<code>--checksum</code>)
+              </label>
+              <div class="form-text">
+                Compares file contents byte-for-byte instead of size+mtime.
+                Safer but reads every file on both sides — more NFS traffic.
+              </div>
+            </div>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="enabled"
                      id="enabled" value="1"

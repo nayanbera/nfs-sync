@@ -66,6 +66,7 @@ def _apply_form(job, form):
     job.cron_hour      = int(form.get("cron_hour") or 2)
     job.cron_minute    = int(form.get("cron_minute") or 0)
     job.bwlimit        = int(form.get("bwlimit") or 0)
+    job.use_checksum   = bool(form.get("use_checksum"))
     job.enabled        = bool(form.get("enabled"))
 
 

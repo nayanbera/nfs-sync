@@ -48,6 +48,7 @@ class SyncJob(db.Model):
     cron_hour      = db.Column(db.Integer, default=2)
     cron_minute    = db.Column(db.Integer, default=0)
     bwlimit        = db.Column(db.Integer, default=0)   # KB/s; 0 = unlimited
+    use_checksum   = db.Column(db.Boolean, default=False)
     enabled        = db.Column(db.Boolean, default=True)
     last_run_at    = db.Column(db.DateTime)
     last_status    = db.Column(db.String(16), default="never")
