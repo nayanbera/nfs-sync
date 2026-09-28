@@ -11,8 +11,9 @@ scheduler    = BackgroundScheduler(timezone="UTC")
 
 
 def create_app():
-    app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object("config.Config")
+    app = Flask(__name__)
+    from .config import Config
+    app.config.from_object(Config)
 
     db.init_app(app)
     login_manager.init_app(app)
