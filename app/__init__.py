@@ -140,6 +140,7 @@ def _seed_defaults():
         "notify_email":    "",
         "base_url":        "http://localhost:5050",
         "timezone":        "America/Chicago",
+        "history_limit":   "500",
     }
     for key, val in defaults.items():
         if not SystemConfig.query.get(key):

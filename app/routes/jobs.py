@@ -153,13 +153,23 @@ def stream(job_id):
 @jobs_bp.route("/jobs/<int:job_id>/runs")
 @login_required
 def run_history(job_id):
-    job  = SyncJob.query.get_or_404(job_id)
-    runs = (SyncRun.query
-            .filter_by(job_id=job_id)
-            .order_by(SyncRun.started_at.desc())
-            .limit(200)
-            .all())
-    return render_template("jobs/runs.html", job=job, runs=runs)
+    from ..models import SystemConfig
+    job       = SyncJob.query.get_or_404(job_id)
+    per_page  = 50
+    limit     = int(SystemConfig.get("history_limit", "500"))
+    page      = request.args.get("page", 1, type=int)
+    total     = (SyncRun.query.filter_by(job_id=job_id).count())
+    total     = min(total, limit)
+    offset    = (page - 1) * per_page
+    runs      = (SyncRun.query
+                 .filter_by(job_id=job_id)
+                 .order_by(SyncRun.started_at.desc())
+                 .limit(limit)
+                 .offset(offset)
+                 .all())
+    pages     = max(1, (total + per_page - 1) // per_page)
+    return render_template("jobs/runs.html", job=job, runs=runs,
+                           page=page, pages=pages, total=total)
 
 
 @jobs_bp.route("/jobs/<int:job_id>/runs/<int:run_id>/log")

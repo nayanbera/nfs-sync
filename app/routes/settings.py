@@ -14,7 +14,7 @@ def settings():
     if request.method == "POST":
         # SMTP settings
         for key in ("smtp_host", "smtp_port", "smtp_user", "smtp_from",
-                    "notify_email", "base_url", "timezone"):
+                    "notify_email", "base_url", "timezone", "history_limit"):
             SystemConfig.set(key, request.form.get(key, "").strip())
         SystemConfig.set("smtp_tls", "1" if request.form.get("smtp_tls") else "0")
         smtp_pass = request.form.get("smtp_password", "")
@@ -46,5 +46,6 @@ def settings():
         "base_url":     SystemConfig.get("base_url"),
         "admin_username": SystemConfig.get("admin_username", "admin"),
         "timezone":       SystemConfig.get("timezone", "America/Chicago"),
+        "history_limit":  SystemConfig.get("history_limit", "500"),
     }
     return render_template("settings.html", cfg=cfg)
