@@ -15,8 +15,12 @@ def main():
         class _App(gunicorn.app.base.BaseApplication):
             def load_config(self):
                 self.cfg.set("bind", f"{host}:{port}")
-                # Must be 1 — APScheduler BackgroundScheduler must not fork.
+                # workers=1 — APScheduler must not be forked across processes.
+                # gthread worker allows multiple concurrent requests (e.g. SSE
+                # streaming + normal page loads) within the single process.
                 self.cfg.set("workers", 1)
+                self.cfg.set("worker_class", "gthread")
+                self.cfg.set("threads", 4)
                 self.cfg.set("timeout", 3600)   # long-running rsync jobs
                 self.cfg.set("accesslog", "-")
 
