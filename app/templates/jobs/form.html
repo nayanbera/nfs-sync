@@ -35,59 +35,66 @@
         <fieldset class="mb-3 border rounded p-3">
           <legend class="float-none w-auto px-2 fw-semibold small">Schedule</legend>
 
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="radio" name="schedule_type"
-                   id="sched_manual" value="manual"
-                   {% if not job or job.schedule_type == 'manual' %}checked{% endif %}
-                   onchange="updateScheduleUI()">
-            <label class="form-check-label" for="sched_manual">Manual only (run on demand)</label>
-          </div>
-
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="radio" name="schedule_type"
-                   id="sched_interval" value="interval"
-                   {% if job and job.schedule_type == 'interval' %}checked{% endif %}
-                   onchange="updateScheduleUI()">
-            <label class="form-check-label" for="sched_interval">Every…</label>
-          </div>
-          <div class="ms-4 mb-2 row g-2 align-items-center" id="interval_row">
-            <div class="col-auto">
-              <input type="number" name="interval_value" class="form-control form-control-sm" min="1"
-                     style="width:80px"
-                     value="{{ job.interval_value if job else 1 }}">
+          <div class="row g-3 align-items-start">
+            <div class="col-md-4">
+              <label class="form-label">Run</label>
+              <select name="schedule_type" id="schedule_type"
+                      class="form-select" onchange="updateScheduleUI()">
+                <option value="manual"   {% if not job or job.schedule_type == 'manual'   %}selected{% endif %}>Manual only</option>
+                <option value="interval" {% if job and job.schedule_type == 'interval' %}selected{% endif %}>Every N …</option>
+                <option value="daily"    {% if job and job.schedule_type == 'daily'    %}selected{% endif %}>Daily</option>
+                <option value="weekly"   {% if job and job.schedule_type == 'weekly'   %}selected{% endif %}>Weekly</option>
+                <option value="monthly"  {% if job and job.schedule_type == 'monthly'  %}selected{% endif %}>Monthly</option>
+              </select>
             </div>
-            <div class="col-auto">
-              <select name="interval_unit" class="form-select form-select-sm">
-                {% for u in ['minutes','hours','days','weeks'] %}
-                <option value="{{ u }}"
-                  {% if job and job.interval_unit == u %}selected{% endif %}>
-                  {{ u }}
-                </option>
+
+            <!-- interval params -->
+            <div class="col-auto sched-panel" id="panel_interval">
+              <label class="form-label">Every</label>
+              <div class="d-flex gap-2">
+                <input type="number" name="interval_value" class="form-control" min="1"
+                       style="width:80px" value="{{ job.interval_value if job else 1 }}">
+                <select name="interval_unit" class="form-select">
+                  {% for u in ['minutes','hours','days','weeks'] %}
+                  <option value="{{ u }}" {% if job and job.interval_unit == u %}selected{% endif %}>{{ u }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- weekly: day of week -->
+            <div class="col-auto sched-panel" id="panel_weekly">
+              <label class="form-label">Day</label>
+              <select name="cron_day_of_week" class="form-select">
+                {% set days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}
+                {% for d in days %}
+                <option value="{{ loop.index0 }}"
+                  {% if job and job.cron_day_of_week == loop.index0 %}selected{% endif %}>{{ d }}</option>
                 {% endfor %}
               </select>
             </div>
-          </div>
 
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="radio" name="schedule_type"
-                   id="sched_daily" value="daily"
-                   {% if job and job.schedule_type == 'daily' %}checked{% endif %}
-                   onchange="updateScheduleUI()">
-            <label class="form-check-label" for="sched_daily">Daily at…</label>
-          </div>
-          <div class="ms-4 row g-2 align-items-center" id="daily_row">
-            <div class="col-auto">
-              <input type="number" name="cron_hour" class="form-control form-control-sm"
-                     min="0" max="23" style="width:70px"
-                     value="{{ job.cron_hour if job else 2 }}">
-              <div class="form-text">hour (0–23)</div>
+            <!-- monthly: day of month -->
+            <div class="col-auto sched-panel" id="panel_monthly">
+              <label class="form-label">Day of month</label>
+              <input type="number" name="cron_day" class="form-control"
+                     min="1" max="31" style="width:80px"
+                     value="{{ job.cron_day if job else 1 }}">
             </div>
-            <div class="col-auto">:</div>
-            <div class="col-auto">
-              <input type="number" name="cron_minute" class="form-control form-control-sm"
-                     min="0" max="59" style="width:70px"
-                     value="{{ job.cron_minute if job else 0 }}">
-              <div class="form-text">minute (0–59)</div>
+
+            <!-- time (daily / weekly / monthly) -->
+            <div class="col-auto sched-panel" id="panel_time">
+              <label class="form-label">At</label>
+              <div class="d-flex align-items-center gap-1">
+                <input type="number" name="cron_hour" class="form-control"
+                       min="0" max="23" style="width:70px"
+                       value="{{ job.cron_hour if job else 2 }}">
+                <span>:</span>
+                <input type="number" name="cron_minute" class="form-control"
+                       min="0" max="59" style="width:70px"
+                       value="{{ job.cron_minute if job else 0 }}">
+                <small class="text-muted ms-1">HH : MM</small>
+              </div>
             </div>
           </div>
         </fieldset>
@@ -135,9 +142,17 @@
 {% block scripts %}
 <script>
 function updateScheduleUI() {
-  const type = document.querySelector('input[name="schedule_type"]:checked').value;
-  document.getElementById('interval_row').style.opacity = type === 'interval' ? '1' : '0.3';
-  document.getElementById('daily_row').style.opacity    = type === 'daily'    ? '1' : '0.3';
+  const type = document.getElementById('schedule_type').value;
+  const panels = {
+    interval: ['panel_interval'],
+    daily:    ['panel_time'],
+    weekly:   ['panel_weekly', 'panel_time'],
+    monthly:  ['panel_monthly', 'panel_time'],
+  };
+  const visible = new Set(panels[type] || []);
+  ['panel_interval', 'panel_weekly', 'panel_monthly', 'panel_time'].forEach(id => {
+    document.getElementById(id).style.display = visible.has(id) ? '' : 'none';
+  });
 }
 updateScheduleUI();
 </script>

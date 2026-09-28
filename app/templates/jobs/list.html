@@ -37,6 +37,12 @@
         Every {{ job.interval_value }} {{ job.interval_unit }}
       {% elif job.schedule_type == 'daily' %}
         Daily at {{ '%02d'|format(job.cron_hour) }}:{{ '%02d'|format(job.cron_minute) }}
+      {% elif job.schedule_type == 'weekly' %}
+        {% set dow = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
+        Weekly on {{ dow[job.cron_day_of_week] }} at {{ '%02d'|format(job.cron_hour) }}:{{ '%02d'|format(job.cron_minute) }}
+      {% elif job.schedule_type == 'monthly' %}
+        {% set suffix = {1:'st',2:'nd',3:'rd'} %}
+        Monthly on {{ job.cron_day }}{{ suffix.get(job.cron_day, 'th') }} at {{ '%02d'|format(job.cron_hour) }}:{{ '%02d'|format(job.cron_minute) }}
       {% else %}
         Manual
       {% endif %}

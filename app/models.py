@@ -41,12 +41,15 @@ class SyncJob(db.Model):
     src_path       = db.Column(db.String(512), nullable=False)
     dst_path       = db.Column(db.String(512), nullable=False)
     # schedule_type: "manual" | "interval" | "daily"
-    schedule_type  = db.Column(db.String(16), default="manual")
-    interval_value = db.Column(db.Integer, default=1)
+    # schedule_type: "manual" | "interval" | "daily" | "weekly" | "monthly"
+    schedule_type    = db.Column(db.String(16), default="manual")
+    interval_value   = db.Column(db.Integer, default=1)
     # interval_unit: "minutes" | "hours" | "days" | "weeks"
-    interval_unit  = db.Column(db.String(16), default="hours")
-    cron_hour      = db.Column(db.Integer, default=2)
-    cron_minute    = db.Column(db.Integer, default=0)
+    interval_unit    = db.Column(db.String(16), default="hours")
+    cron_hour        = db.Column(db.Integer, default=2)
+    cron_minute      = db.Column(db.Integer, default=0)
+    cron_day_of_week = db.Column(db.Integer, default=0)   # 0=Mon … 6=Sun
+    cron_day         = db.Column(db.Integer, default=1)   # 1–31 for monthly
     bwlimit        = db.Column(db.Integer, default=0)   # KB/s; 0 = unlimited
     use_checksum   = db.Column(db.Boolean, default=False)
     enabled        = db.Column(db.Boolean, default=True)

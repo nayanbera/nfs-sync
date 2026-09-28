@@ -157,6 +157,12 @@ def schedule_job(app, job):
         trigger = IntervalTrigger(**{job.interval_unit: job.interval_value})
     elif job.schedule_type == "daily":
         trigger = CronTrigger(hour=job.cron_hour, minute=job.cron_minute)
+    elif job.schedule_type == "weekly":
+        trigger = CronTrigger(day_of_week=job.cron_day_of_week,
+                              hour=job.cron_hour, minute=job.cron_minute)
+    elif job.schedule_type == "monthly":
+        trigger = CronTrigger(day=job.cron_day,
+                              hour=job.cron_hour, minute=job.cron_minute)
     else:
         return
 
