@@ -5,7 +5,8 @@
   <h5 class="mb-0 me-auto">
     <i class="bi bi-terminal"></i> Live output — {{ job.name }}
   </h5>
-  <a href="{{ url_for('jobs.list_jobs') }}" class="btn btn-sm btn-secondary">
+  <a href="{{ url_for('jobs.list_jobs') }}" class="btn btn-sm btn-secondary"
+     onclick="if(window.es) window.es.close()">
     <i class="bi bi-arrow-left"></i> Jobs
   </a>
 </div>
@@ -25,6 +26,8 @@ const logEl    = document.getElementById('log-output');
 const badge    = document.getElementById('status-badge');
 const statusTx = document.getElementById('status-text');
 const es       = new EventSource("{{ url_for('jobs.stream', job_id=job.id) }}");
+window.es = es;
+window.addEventListener('beforeunload', () => es.close());
 
 es.onmessage = function(e) {
   if (e.data === '[DONE]') {
