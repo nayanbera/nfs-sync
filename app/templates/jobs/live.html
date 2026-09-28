@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Live — {{ job.name }} — NFS Sync{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-3">
+  <h5 class="mb-0 me-auto">
+    <i class="bi bi-terminal"></i> Live output — {{ job.name }}
+  </h5>
+  <a href="{{ url_for('jobs.list_jobs') }}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left"></i> Jobs
+  </a>
+</div>
+
+<p class="text-muted small mb-1">
+  <span class="badge bg-primary" id="status-badge">
+    <span class="spinner-border spinner-border-sm me-1"></span>Running
+  </span>
+  <span id="status-text" class="ms-2"></span>
+</p>
+
+<pre class="log" id="log-output"></pre>
+{% endblock %}
+{% block scripts %}
+<script>
+const logEl    = document.getElementById('log-output');
+const badge    = document.getElementById('status-badge');
+const statusTx = document.getElementById('status-text');
+const es       = new EventSource("{{ url_for('jobs.stream', job_id=job.id) }}");
+
+es.onmessage = function(e) {
+  if (e.data === '[DONE]') {
+    es.close();
+    badge.innerHTML = '<i class="bi bi-check-lg"></i> Done';
+    badge.className = 'badge bg-success';
+    statusTx.textContent = 'Sync complete — check run history for details.';
+    return;
+  }
+  logEl.textContent += e.data + '\n';
+  logEl.scrollTop = logEl.scrollHeight;
+};
+
+es.onerror = function() {
+  es.close();
+  badge.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Disconnected';
+  badge.className = 'badge bg-warning text-dark';
+};
+</script>
+{% endblock %}

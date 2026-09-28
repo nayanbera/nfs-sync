@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Error log — {{ job.name }} — NFS Sync{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-3">
+  <div class="me-auto">
+    <h5 class="mb-0">
+      <i class="bi bi-file-text-fill text-danger"></i> Error log — {{ job.name }}
+    </h5>
+    <small class="text-muted">
+      Run started {{ run.started_at.strftime('%Y-%m-%d %H:%M:%S') }} ·
+      Exit code {{ run.exit_code }} ·
+      {{ run.duration_str }}
+    </small>
+  </div>
+  <a href="{{ url_for('jobs.run_history', job_id=job.id) }}"
+     class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left"></i> History
+  </a>
+</div>
+
+<pre class="log">{{ run.log_text or '(no log captured)' }}</pre>
+{% endblock %}

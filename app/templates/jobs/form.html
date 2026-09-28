@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — NFS Sync{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-8">
+  <div class="card shadow-sm">
+    <div class="card-header"><h5 class="mb-0">{{ title }}</h5></div>
+    <div class="card-body">
+      <form method="post">
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Job name</label>
+          <input name="name" class="form-control" required
+                 value="{{ job.name if job else '' }}"
+                 placeholder="e.g. Raw data backup">
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Source path</label>
+            <input name="src_path" class="form-control font-monospace" required
+                   value="{{ job.src_path if job else '' }}"
+                   placeholder="/mnt/buffer/data">
+            <div class="form-text">NFS-mounted path on this machine. Contents are copied (trailing slash added automatically).</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Destination path</label>
+            <input name="dst_path" class="form-control font-monospace" required
+                   value="{{ job.dst_path if job else '' }}"
+                   placeholder="/mnt/archive/data">
+          </div>
+        </div>
+
+        <!-- Schedule -->
+        <fieldset class="mb-3 border rounded p-3">
+          <legend class="float-none w-auto px-2 fw-semibold small">Schedule</legend>
+
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="schedule_type"
+                   id="sched_manual" value="manual"
+                   {% if not job or job.schedule_type == 'manual' %}checked{% endif %}
+                   onchange="updateScheduleUI()">
+            <label class="form-check-label" for="sched_manual">Manual only (run on demand)</label>
+          </div>
+
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="schedule_type"
+                   id="sched_interval" value="interval"
+                   {% if job and job.schedule_type == 'interval' %}checked{% endif %}
+                   onchange="updateScheduleUI()">
+            <label class="form-check-label" for="sched_interval">Every…</label>
+          </div>
+          <div class="ms-4 mb-2 row g-2 align-items-center" id="interval_row">
+            <div class="col-auto">
+              <input type="number" name="interval_value" class="form-control form-control-sm" min="1"
+                     style="width:80px"
+                     value="{{ job.interval_value if job else 1 }}">
+            </div>
+            <div class="col-auto">
+              <select name="interval_unit" class="form-select form-select-sm">
+                {% for u in ['minutes','hours','days','weeks'] %}
+                <option value="{{ u }}"
+                  {% if job and job.interval_unit == u %}selected{% endif %}>
+                  {{ u }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="schedule_type"
+                   id="sched_daily" value="daily"
+                   {% if job and job.schedule_type == 'daily' %}checked{% endif %}
+                   onchange="updateScheduleUI()">
+            <label class="form-check-label" for="sched_daily">Daily at…</label>
+          </div>
+          <div class="ms-4 row g-2 align-items-center" id="daily_row">
+            <div class="col-auto">
+              <input type="number" name="cron_hour" class="form-control form-control-sm"
+                     min="0" max="23" style="width:70px"
+                     value="{{ job.cron_hour if job else 2 }}">
+              <div class="form-text">hour (0–23)</div>
+            </div>
+            <div class="col-auto">:</div>
+            <div class="col-auto">
+              <input type="number" name="cron_minute" class="form-control form-control-sm"
+                     min="0" max="59" style="width:70px"
+                     value="{{ job.cron_minute if job else 0 }}">
+              <div class="form-text">minute (0–59)</div>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Bandwidth limit (KB/s)</label>
+            <input type="number" name="bwlimit" class="form-control" min="0"
+                   value="{{ job.bwlimit if job else 0 }}"
+                   placeholder="0 = unlimited">
+            <div class="form-text">0 = unlimited</div>
+          </div>
+          <div class="col-md-4 d-flex align-items-end pb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="enabled"
+                     id="enabled" value="1"
+                     {% if not job or job.enabled %}checked{% endif %}>
+              <label class="form-check-label" for="enabled">Enabled</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary">Save</button>
+          <a href="{{ url_for('jobs.list_jobs') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function updateScheduleUI() {
+  const type = document.querySelector('input[name="schedule_type"]:checked').value;
+  document.getElementById('interval_row').style.opacity = type === 'interval' ? '1' : '0.3';
+  document.getElementById('daily_row').style.opacity    = type === 'daily'    ? '1' : '0.3';
+}
+updateScheduleUI();
+</script>
+{% endblock %}

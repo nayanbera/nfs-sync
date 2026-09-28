@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Jobs — NFS Sync{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-3">
+  <h4 class="mb-0 me-auto"><i class="bi bi-list-task"></i> Sync Jobs</h4>
+  <a href="{{ url_for('jobs.new_job') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg"></i> New Job
+  </a>
+</div>
+
+{% if jobs %}
+<div class="table-responsive">
+<table class="table table-hover align-middle bg-white shadow-sm rounded">
+  <thead class="table-dark">
+    <tr>
+      <th>Name</th>
+      <th>Source → Destination</th>
+      <th>Schedule</th>
+      <th>Status</th>
+      <th>Last Run</th>
+      <th>Next Run</th>
+      <th class="text-end">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for job in jobs %}
+  {% set status = 'running' if running[job.id] else job.last_status %}
+  <tr>
+    <td class="fw-semibold">{{ job.name }}</td>
+    <td class="font-monospace small text-muted">
+      {{ job.src_path }}<br>
+      <i class="bi bi-arrow-down text-secondary"></i> {{ job.dst_path }}
+    </td>
+    <td class="small">
+      {% if job.schedule_type == 'interval' %}
+        Every {{ job.interval_value }} {{ job.interval_unit }}
+      {% elif job.schedule_type == 'daily' %}
+        Daily at {{ '%02d'|format(job.cron_hour) }}:{{ '%02d'|format(job.cron_minute) }}
+      {% else %}
+        Manual
+      {% endif %}
+      {% if not job.enabled %}
+        <span class="badge bg-secondary ms-1">disabled</span>
+      {% endif %}
+    </td>
+    <td>
+      {% if status == 'running' %}
+        <span class="badge badge-running">
+          <span class="spinner-border spinner-border-sm me-1"></span>Running
+        </span>
+      {% elif status == 'success' %}
+        <span class="badge badge-success"><i class="bi bi-check-lg"></i> OK</span>
+      {% elif status == 'error' %}
+        <span class="badge badge-error"><i class="bi bi-x-lg"></i> Error</span>
+      {% else %}
+        <span class="badge badge-never">Never run</span>
+      {% endif %}
+    </td>
+    <td class="small text-muted">
+      {{ job.last_run_at.strftime('%Y-%m-%d %H:%M') if job.last_run_at else '—' }}
+    </td>
+    <td class="small text-muted">
+      {{ next_runs[job.id].strftime('%Y-%m-%d %H:%M') if next_runs[job.id] else '—' }}
+    </td>
+    <td class="text-end">
+      <div class="btn-group btn-group-sm">
+        {% if running[job.id] %}
+          <a href="{{ url_for('jobs.live_log', job_id=job.id) }}"
+             class="btn btn-outline-primary" title="View live log">
+            <i class="bi bi-terminal"></i>
+          </a>
+        {% else %}
+          <form method="post" action="{{ url_for('jobs.run_now', job_id=job.id) }}" class="d-inline">
+            <button class="btn btn-outline-success" title="Run now"
+                    {% if not job.enabled %}disabled{% endif %}>
+              <i class="bi bi-play-fill"></i>
+            </button>
+          </form>
+        {% endif %}
+        <a href="{{ url_for('jobs.run_history', job_id=job.id) }}"
+           class="btn btn-outline-secondary" title="Run history">
+          <i class="bi bi-clock-history"></i>
+        </a>
+        <a href="{{ url_for('jobs.edit_job', job_id=job.id) }}"
+           class="btn btn-outline-secondary" title="Edit">
+          <i class="bi bi-pencil"></i>
+        </a>
+        <form method="post" action="{{ url_for('jobs.delete_job', job_id=job.id) }}"
+              class="d-inline"
+              onsubmit="return confirm('Delete job \'{{ job.name }}\'? This also removes all run history.')">
+          <button class="btn btn-outline-danger" title="Delete">
+            <i class="bi bi-trash"></i>
+          </button>
+        </form>
+      </div>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+  <i class="bi bi-inbox fs-1"></i>
+  <p class="mt-2">No sync jobs yet. <a href="{{ url_for('jobs.new_job') }}">Create one</a>.</p>
+</div>
+{% endif %}
+{% endblock %}
