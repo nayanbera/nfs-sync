@@ -33,7 +33,7 @@ Restart=on-failure
 RestartSec=5s
 
 # Give in-flight rsync jobs time to finish before systemd kills the process.
-TimeoutStopSec=120
+TimeoutStopSec=3600
 
 [Install]
 WantedBy=multi-user.target

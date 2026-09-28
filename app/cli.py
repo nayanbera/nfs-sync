@@ -17,7 +17,7 @@ def main():
                 self.cfg.set("bind", f"{host}:{port}")
                 # Must be 1 — APScheduler BackgroundScheduler must not fork.
                 self.cfg.set("workers", 1)
-                self.cfg.set("timeout", 120)
+                self.cfg.set("timeout", 3600)   # long-running rsync jobs
                 self.cfg.set("accesslog", "-")
 
             def load(self):
