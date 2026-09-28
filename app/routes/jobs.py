@@ -20,10 +20,14 @@ jobs_bp = Blueprint("jobs", __name__)
 @login_required
 def list_jobs():
     jobs = SyncJob.query.order_by(SyncJob.name).all()
-    next_runs = {j.id: next_run_time(j.id) for j in jobs}
-    running   = {j.id: is_running(j.id) for j in jobs}
+    next_runs  = {j.id: next_run_time(j.id) for j in jobs}
+    running    = {j.id: is_running(j.id) for j in jobs}
+    last_runs  = {j.id: (SyncRun.query.filter_by(job_id=j.id)
+                         .order_by(SyncRun.started_at.desc())
+                         .first()) for j in jobs}
     return render_template("jobs/list.html",
-                           jobs=jobs, next_runs=next_runs, running=running)
+                           jobs=jobs, next_runs=next_runs,
+                           running=running, last_runs=last_runs)
 
 
 # ── Create / Edit ─────────────────────────────────────────────────────────────

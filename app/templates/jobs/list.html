@@ -19,6 +19,7 @@
       <th>Checksum</th>
       <th>Status</th>
       <th>Last Run</th>
+      <th>Duration</th>
       <th>Next Run</th>
       <th class="text-end">Actions</th>
     </tr>
@@ -73,7 +74,16 @@
       {% endif %}
     </td>
     <td class="small text-muted">
-      {{ job.last_run_at | localdt if job.last_run_at else '—' }}
+      {% set lr = last_runs[job.id] %}
+      {% if lr %}
+        <span title="Started">&#9654; {{ lr.started_at | localdt }}</span><br>
+        <span title="Finished">&#9632; {{ lr.finished_at | localdt if lr.finished_at else '…' }}</span>
+      {% else %}
+        —
+      {% endif %}
+    </td>
+    <td class="small text-muted">
+      {{ last_runs[job.id].duration_str if last_runs[job.id] else '—' }}
     </td>
     <td class="small text-muted">
       {{ next_runs[job.id] | localdt if next_runs[job.id] else '—' }}
