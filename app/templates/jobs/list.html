@@ -16,6 +16,7 @@
       <th>Name</th>
       <th>Source → Destination</th>
       <th>Schedule</th>
+      <th>Checksum</th>
       <th>Status</th>
       <th>Last Run</th>
       <th>Next Run</th>
@@ -41,6 +42,15 @@
       {% endif %}
       {% if not job.enabled %}
         <span class="badge bg-secondary ms-1">disabled</span>
+      {% endif %}
+    </td>
+    <td class="text-center">
+      {% if job.use_checksum %}
+        <span class="badge bg-info text-dark" title="--checksum: byte-for-byte comparison">
+          <i class="bi bi-shield-check"></i> On
+        </span>
+      {% else %}
+        <span class="text-muted small">mtime</span>
       {% endif %}
     </td>
     <td>
