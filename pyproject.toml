@@ -15,6 +15,7 @@ dependencies = [
     "Flask-SQLAlchemy>=3.1",
     "APScheduler>=3.10",
     "Werkzeug>=3.0",
+    "gunicorn>=21.0",
 ]
 
 [project.scripts]

@@ -8,4 +8,22 @@ def main():
 
     from app import create_app
     application = create_app()
-    application.run(host=host, port=port)
+
+    try:
+        import gunicorn.app.base
+
+        class _App(gunicorn.app.base.BaseApplication):
+            def load_config(self):
+                self.cfg.set("bind", f"{host}:{port}")
+                # Must be 1 — APScheduler BackgroundScheduler must not fork.
+                self.cfg.set("workers", 1)
+                self.cfg.set("timeout", 120)
+                self.cfg.set("accesslog", "-")
+
+            def load(self):
+                return application
+
+        _App().run()
+    except ImportError:
+        # Fallback: Flask dev server (fine for local testing).
+        application.run(host=host, port=port)

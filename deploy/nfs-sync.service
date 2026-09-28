@@ -1,0 +1,30 @@
+[Unit]
+Description=NFS Sync Web Service
+After=network.target
+
+[Service]
+Type=simple
+# Run as the user who owns the NFS mounts (must have read access to src paths
+# and write access to dst paths).
+User=%i
+
+# The nfs-sync executable installed by pip.  If you used a venv, point here:
+#   ExecStart=/opt/nfs-sync-venv/bin/nfs-sync
+ExecStart=/usr/local/bin/nfs-sync
+
+# Bind to localhost only; put nginx/caddy in front for HTTPS if needed.
+Environment=NFS_SYNC_HOST=127.0.0.1
+Environment=NFS_SYNC_PORT=5050
+
+# Override the database location if you want it somewhere other than
+# ~/.nfs-sync/sync.db (the default).
+#Environment=NFS_SYNC_DATA_DIR=/var/lib/nfs-sync
+
+Restart=on-failure
+RestartSec=5s
+
+# Let gunicorn workers finish in-flight rsync jobs before killing.
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target
