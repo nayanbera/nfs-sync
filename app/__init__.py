@@ -44,7 +44,29 @@ def create_app():
     app.register_blueprint(jobs_bp)
     app.register_blueprint(settings_bp)
 
+    _register_filters(app)
+
     return app
+
+
+def _register_filters(app):
+    """Jinja2 filter: convert a naive UTC datetime to the configured timezone."""
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+    @app.template_filter("localdt")
+    def localdt_filter(dt, fmt="%Y-%m-%d %H:%M"):
+        if dt is None:
+            return "—"
+        from datetime import timezone
+        from .models import SystemConfig
+        tz_name = SystemConfig.get("timezone", "America/Chicago")
+        try:
+            tz = ZoneInfo(tz_name)
+        except ZoneInfoNotFoundError:
+            tz = ZoneInfo("America/Chicago")
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(tz).strftime(fmt)
 
 
 def _reset_stale_runs():
@@ -117,6 +139,7 @@ def _seed_defaults():
         "smtp_tls":        "1",
         "notify_email":    "",
         "base_url":        "http://localhost:5050",
+        "timezone":        "America/Chicago",
     }
     for key, val in defaults.items():
         if not SystemConfig.query.get(key):

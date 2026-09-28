@@ -84,6 +84,36 @@
       </div>
     </div>
 
+    <!-- Timezone -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header fw-semibold"><i class="bi bi-clock"></i> Display timezone</div>
+      <div class="card-body">
+        <label class="form-label">Timezone</label>
+        <select name="timezone" class="form-select">
+          {% set tzones = [
+            ("America/New_York",    "Eastern  — New York / Boston (ET)"),
+            ("America/Chicago",     "Central  — Chicago / Houston (CT)"),
+            ("America/Denver",      "Mountain — Denver / Phoenix (MT)"),
+            ("America/Los_Angeles", "Pacific  — Los Angeles / Seattle (PT)"),
+            ("America/Anchorage",   "Alaska (AKT)"),
+            ("Pacific/Honolulu",    "Hawaii (HT)"),
+            ("UTC",                 "UTC"),
+            ("Europe/London",       "London (GMT/BST)"),
+            ("Europe/Paris",        "Central Europe (CET/CEST)"),
+            ("Asia/Tokyo",          "Japan (JST)"),
+            ("Asia/Shanghai",       "China (CST)"),
+            ("Australia/Sydney",    "Sydney (AEST/AEDT)"),
+          ] %}
+          {% for tz_val, tz_label in tzones %}
+          <option value="{{ tz_val }}" {% if cfg.timezone == tz_val %}selected{% endif %}>
+            {{ tz_label }}
+          </option>
+          {% endfor %}
+        </select>
+        <div class="form-text">All timestamps in the UI are displayed in this timezone.</div>
+      </div>
+    </div>
+
     <button class="btn btn-primary"><i class="bi bi-save"></i> Save settings</button>
 
   </form>

@@ -73,10 +73,10 @@
       {% endif %}
     </td>
     <td class="small text-muted">
-      {{ job.last_run_at.strftime('%Y-%m-%d %H:%M') if job.last_run_at else '—' }}
+      {{ job.last_run_at | localdt if job.last_run_at else '—' }}
     </td>
     <td class="small text-muted">
-      {{ next_runs[job.id].strftime('%Y-%m-%d %H:%M') if next_runs[job.id] else '—' }}
+      {{ next_runs[job.id] | localdt if next_runs[job.id] else '—' }}
     </td>
     <td class="text-end">
       <div class="btn-group btn-group-sm">

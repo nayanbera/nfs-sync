@@ -28,7 +28,7 @@
   <tbody>
   {% for run in runs %}
   <tr>
-    <td class="small">{{ run.started_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+    <td class="small">{{ run.started_at | localdt('%Y-%m-%d %H:%M:%S') }}</td>
     <td class="small">{{ run.duration_str }}</td>
     <td>
       {% if run.status == 'success' %}
