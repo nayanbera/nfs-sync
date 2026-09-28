@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nfs-sync"
-version = "0.1.0"
+version = "0.2.0"
 description = "Web app for one-way NFS folder syncing via rsync, with scheduled jobs and email alerts"
 readme = "README.md"
 requires-python = ">=3.9"
